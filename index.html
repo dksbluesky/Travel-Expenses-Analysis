@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>消費分析儀表板</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>📊 消費分析儀表板</h1>
+  <p class="subtitle">匯入「PDF 轉 Excel」工具產生的 Raw Sheet，自動分析消費狀況</p>
+</header>
+
+<main>
+
+  <section class="card upload-card">
+    <div id="dropZone" class="drop-zone">
+      <p><strong>拖曳 Excel 檔案到這裡</strong>，或</p>
+      <label class="btn" for="fileInput">選擇檔案</label>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" multiple hidden>
+      <p class="hint">可一次匯入多個檔案（例如多趟旅行、不同月份），系統會自動合併分析</p>
+    </div>
+    <ul id="fileList" class="file-list"></ul>
+    <p id="uploadStatus" class="status"></p>
+  </section>
+
+  <section id="dashboard" class="hidden">
+
+    <section class="card kpi-grid">
+      <div class="kpi"><span class="kpi-label">總支出</span><span class="kpi-value" id="kpiTotal">--</span></div>
+      <div class="kpi"><span class="kpi-label">消費次數</span><span class="kpi-value" id="kpiVisits">--</span></div>
+      <div class="kpi"><span class="kpi-label">平均每次</span><span class="kpi-value" id="kpiAvg">--</span></div>
+      <div class="kpi"><span class="kpi-label">消費店家數</span><span class="kpi-value" id="kpiStores">--</span></div>
+      <div class="kpi"><span class="kpi-label">日均消費</span><span class="kpi-value" id="kpiDaily">--</span></div>
+      <div class="kpi"><span class="kpi-label">資料期間</span><span class="kpi-value" id="kpiRange">--</span></div>
+    </section>
+
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="stores">🏪 店家分析</button>
+      <button class="tab-btn" data-tab="categories">🗂️ 分類分析</button>
+      <button class="tab-btn" data-tab="time">📅 時間分析</button>
+      <button class="tab-btn" data-tab="detail">📋 明細列表</button>
+    </nav>
+
+    <section class="tab-panel" id="tab-stores">
+      <div class="card">
+        <div class="panel-header">
+          <h2>店家排行</h2>
+          <div class="toggle-group">
+            <button class="toggle-btn active" data-metric="amount">依金額</button>
+            <button class="toggle-btn" data-metric="count">依次數</button>
+          </div>
+        </div>
+        <canvas id="storeChart" height="220"></canvas>
+      </div>
+      <div class="card">
+        <h2>店家明細</h2>
+        <table class="data-table" id="storeTable">
+          <thead><tr><th>店家</th><th>分類</th><th>次數</th><th>總金額</th><th>平均</th><th>最近消費</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="tab-panel hidden" id="tab-categories">
+      <div class="card category-layout">
+        <div class="chart-box">
+          <h2>分類佔比</h2>
+          <canvas id="categoryChart" height="260"></canvas>
+        </div>
+        <div class="category-list" id="categoryList"></div>
+      </div>
+      <div class="card">
+        <details>
+          <summary>⚙️ 自訂分類關鍵字（依店家/品名比對，由上往下第一個符合者為準）</summary>
+          <p class="hint">每行一個分類，格式：<code>分類名稱: 關鍵字1,關鍵字2,關鍵字3</code></p>
+          <textarea id="categoryRules" rows="8"></textarea>
+          <button class="btn" id="saveRulesBtn">套用並重新分析</button>
+          <span id="rulesStatus" class="status"></span>
+        </details>
+      </div>
+    </section>
+
+    <section class="tab-panel hidden" id="tab-time">
+      <div class="card">
+        <h2>月別消費趨勢</h2>
+        <canvas id="monthChart" height="220"></canvas>
+      </div>
+      <div class="card">
+        <h2>星期消費分布</h2>
+        <canvas id="weekdayChart" height="220"></canvas>
+        <p class="hint">註：原始資料僅含日期、不含確切時間，因此無法做到「時段（如12:00~17:59）」分析，這裡改以星期與月份呈現消費規律。</p>
+      </div>
+    </section>
+
+    <section class="tab-panel hidden" id="tab-detail">
+      <div class="card">
+        <div class="panel-header">
+          <h2>消費明細</h2>
+          <input type="text" id="detailSearch" placeholder="搜尋店家或品名…">
+        </div>
+        <table class="data-table" id="detailTable">
+          <thead><tr><th>日期</th><th>店家/場所</th><th>品名</th><th>分類</th><th>數量</th><th>金額</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+  </section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
