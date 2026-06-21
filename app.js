@@ -216,6 +216,15 @@ function storeStats() {
   return Array.from(map.values()).sort((a, b) => b.amount - a.amount);
 }
 
+function splitStoreLabel(store) {
+  // Bilingual AI-mode names follow a strict "原文 / 中文翻譯" format (see
+  // pdf-convert-to-excel-protable's extraction prompt) — split into two
+  // tick lines instead of one long string, so a vertical bar chart doesn't
+  // need to truncate or rotate the label.
+  const idx = store.indexOf(" / ");
+  return idx === -1 ? [store] : [store.slice(0, idx), store.slice(idx + 3)];
+}
+
 function renderStores() {
   const stats = storeStats();
   const sorted = [...stats].sort((a, b) => storeMetric === "amount" ? b.amount - a.amount : b.count - a.count);
@@ -223,7 +232,7 @@ function renderStores() {
 
   const ctx = $("#storeChart");
   const data = {
-    labels: top.map(s => s.store),
+    labels: top.map(s => splitStoreLabel(s.store)),
     datasets: [{
       label: storeMetric === "amount" ? "消費金額" : "消費次數",
       data: top.map(s => storeMetric === "amount" ? s.amount : s.count),
@@ -236,9 +245,11 @@ function renderStores() {
     type: "bar",
     data,
     options: {
-      indexAxis: "y",
       plugins: { legend: { display: false } },
-      scales: { x: { beginAtZero: true } },
+      scales: {
+        x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false } },
+        y: { beginAtZero: true },
+      },
     },
   });
 
