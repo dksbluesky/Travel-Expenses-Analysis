@@ -1,0 +1,18 @@
+{
+  "name": "消費分析儀表板",
+  "short_name": "消費分析",
+  "description": "匯入 Raw Sheet Excel，自動分析消費狀況",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f6f9",
+  "theme_color": "#1ca9e6",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
